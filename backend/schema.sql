@@ -1,0 +1,1 @@
+-- Database schema. Populated in the next step.
