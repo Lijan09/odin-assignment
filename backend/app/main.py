@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.ai.base import AiAnalysisError
 from app.db import bootstrap
 from app.routers import tasks
 from app.services.task_service import TaskNotFoundError
@@ -57,6 +58,20 @@ async def handle_task_not_found(_request: Request, exc: TaskNotFoundError) -> JS
     return JSONResponse(
         status_code=404,
         content={"error": "not_found", "message": str(exc)},
+    )
+
+
+@app.exception_handler(AiAnalysisError)
+async def handle_ai_analysis_error(_request: Request, exc: AiAnalysisError) -> JSONResponse:
+    """Report an AI failure as 502 Bad Gateway.
+
+    502 says an upstream dependency failed, which is what happened: the API itself
+    is healthy. The message is the analyser's own caller-safe text, never the
+    provider's raw error, so nothing about the key or the request leaks outward.
+    """
+    return JSONResponse(
+        status_code=502,
+        content={"error": "ai_unavailable", "message": str(exc)},
     )
 
 

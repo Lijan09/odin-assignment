@@ -83,8 +83,20 @@ def _database_target() -> str:
 
 
 def connect() -> sqlite3.Connection:
-    """Open a connection with row access by column name and foreign keys enabled."""
-    conn = sqlite3.connect(_database_target())
+    """Open a connection with row access by column name and foreign keys enabled.
+
+    check_same_thread=False is required, not optional. FastAPI runs a sync
+    generator dependency and the endpoint that consumes it as separate
+    run_in_threadpool calls, and AnyIO does not promise the same worker thread for
+    both. Without this flag a connection opened during dependency setup raises
+    ProgrammingError as soon as the endpoint runs on a different worker, which
+    shows up as intermittent 500s under concurrent load.
+
+    Disabling the check is safe here because the connection is not shared: each
+    request gets its own, and setup, handler and teardown touch it strictly in
+    sequence, never at the same time.
+    """
+    conn = sqlite3.connect(_database_target(), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     # SQLite disables foreign key enforcement by default, per connection.
     conn.execute("PRAGMA foreign_keys = ON")

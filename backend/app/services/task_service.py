@@ -7,7 +7,8 @@ responses is the web layer's job, which keeps this module testable on its own.
 import sqlite3
 
 from app import repository
-from app.models import Status, Task
+from app.ai.base import AiAnalyser
+from app.models import AnalysisResult, Status, Task
 
 
 class TaskNotFoundError(Exception):
@@ -34,3 +35,15 @@ def update_task_status(conn: sqlite3.Connection, task_id: int, status: Status) -
     if task is None:
         raise TaskNotFoundError(task_id)
     return task
+
+
+def analyse_task(conn: sqlite3.Connection, task_id: int, analyser: AiAnalyser) -> AnalysisResult:
+    """Run an AI analysis for one task.
+
+    The task is loaded first, so an unknown id raises TaskNotFoundError before any
+    request reaches the provider. Analysis is read-only: nothing is written back,
+    because the brief describes it as a decision aid rather than a stored field.
+    Any AiAnalysisError is left to propagate to the web layer.
+    """
+    task = get_task(conn, task_id)
+    return analyser.analyse(task.title, task.description)

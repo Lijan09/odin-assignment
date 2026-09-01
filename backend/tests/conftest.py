@@ -6,6 +6,8 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
+from app.ai.mock import MockAnalyser
+from app.ai.provider import get_analyser
 from app.db import get_connection, init_db, seed_tasks
 from app.main import app
 
@@ -55,6 +57,11 @@ def client(connection: sqlite3.Connection) -> Iterator[TestClient]:
         connection.commit()
 
     app.dependency_overrides[get_connection] = override_get_connection
+    # Always analyse with the mock, whatever AI_PROVIDER says locally. Without
+    # this, running the suite with a real key configured would make live, billable
+    # API calls, and CI (which has no key) would fail. Tests that need a failure
+    # override this again.
+    app.dependency_overrides[get_analyser] = MockAnalyser
     try:
         yield TestClient(app)
     finally:

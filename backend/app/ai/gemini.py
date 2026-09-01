@@ -66,15 +66,24 @@ class GeminiAnalyser:
             response_schema=AnalysisResult,
         )
 
+    def _call_model(self, prompt: str) -> str | None:
+        """The single point of contact with the SDK.
+
+        Isolating it here keeps `analyse` free of SDK detail and gives tests one
+        seam to override, rather than reaching into the client's internals.
+        """
+        response = self._client.models.generate_content(
+            model=self._model, contents=prompt, config=self._config
+        )
+        return response.text
+
     def analyse(self, title: str, description: str) -> AnalysisResult:
         prompt = _build_prompt(title, description)
         last_reason = "no attempt was made"
 
         for attempt in range(1, _ATTEMPTS + 1):
             try:
-                response = self._client.models.generate_content(
-                    model=self._model, contents=prompt, config=self._config
-                )
+                text = self._call_model(prompt)
             except errors.ClientError as exc:
                 # 4xx: a bad key, a bad model name or a rejected prompt. Retrying
                 # an identical request cannot fix any of those, so fail now.
@@ -86,7 +95,6 @@ class GeminiAnalyser:
                 logger.warning("Gemini call failed (attempt %s): %s", attempt, exc)
                 continue
 
-            text = response.text
             if not text:
                 last_reason = "provider returned an empty response"
                 logger.warning("Gemini returned no text (attempt %s)", attempt)
