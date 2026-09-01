@@ -1,122 +1,95 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+
 import './App.css'
+import { FilterTabs } from './components/FilterTabs'
+import { TaskRow } from './components/TaskRow'
+import type { Status } from './types'
+import { useTasks } from './useTasks'
 
-function App() {
-  const [count, setCount] = useState(0)
+const IDLE_ANALYSIS = { loading: false, result: null, error: null }
+const IDLE_STATUS = { saving: false, error: null }
 
+function SkeletonRow() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <li className="row row--skeleton" aria-hidden="true">
+      <div className="row__main">
+        <span className="skeleton skeleton--title" />
+        <span className="skeleton skeleton--line" />
+        <span className="skeleton skeleton--line skeleton--short" />
+        <span className="skeleton skeleton--badge" />
+      </div>
+      <div className="row__controls">
+        <span className="skeleton skeleton--control" />
+        <span className="skeleton skeleton--control" />
+      </div>
+    </li>
   )
 }
 
-export default App
+export default function App() {
+  const [filter, setFilter] = useState<Status | null>(null)
+  const {
+    tasks,
+    counts,
+    total,
+    loading,
+    loadError,
+    analyses,
+    statusStates,
+    reload,
+    changeStatus,
+    analyse,
+  } = useTasks(filter)
+
+  return (
+    <main className="page">
+      <h1 className="page__title">Task Review</h1>
+
+      <FilterTabs active={filter} counts={counts} total={total} onChange={setFilter} />
+
+      <div className="list" aria-busy={loading}>
+        {loading && (
+          <>
+            <p className="list__loading">Loading tasks…</p>
+            <ul className="list__items">
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </ul>
+          </>
+        )}
+
+        {!loading && loadError && (
+          <div className="list__error" role="alert">
+            <p className="list__error-title">Couldn’t load tasks</p>
+            <p className="list__error-text">{loadError}</p>
+            <button type="button" className="button button--retry" onClick={() => void reload()}>
+              Retry<span className="sr-only"> loading tasks</span>
+            </button>
+          </div>
+        )}
+
+        {!loading && !loadError && tasks.length === 0 && (
+          <p className="list__empty">No tasks with this status</p>
+        )}
+
+        {!loading && !loadError && tasks.length > 0 && (
+          <ul className="list__items">
+            {tasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                analysis={analyses[task.id] ?? IDLE_ANALYSIS}
+                statusState={statusStates[task.id] ?? IDLE_STATUS}
+                onStatusChange={(status) => void changeStatus(task.id, status)}
+                onAnalyse={() => void analyse(task.id)}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <p className="page__note">Statuses available: New, In progress, Completed.</p>
+    </main>
+  )
+}
