@@ -44,5 +44,4 @@ desktop.ini
 .claude/settings.local.json
 
 # ---- Local-only assessment material (not part of the submission) ----
-ODINHANDOFFPROMPT.md
-Technical_Assessment_Junior_Software_Engineer.pdf
+docs/
