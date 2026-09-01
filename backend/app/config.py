@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # SecretStr so the key is masked in reprs, logs and tracebacks. Read it at the
     # point of use with .get_secret_value().
     gemini_api_key: SecretStr = SecretStr("")
-    gemini_model: str = "gemini-3.7-flash"
+    gemini_model: str = "gemini-3.6-flash"
     gemini_timeout_seconds: float = 10.0
 
     database_path: str = "odin_tasks.db"
