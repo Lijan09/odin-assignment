@@ -62,6 +62,16 @@ class StatusUpdate(CamelModel):
     status: Status
 
 
+class PriorityUpdate(CamelModel):
+    """Body of PATCH /tasks/{id}/priority.
+
+    Typed as the enum for the same reason as StatusUpdate: an unsupported value is
+    rejected by validation before any handler code runs.
+    """
+
+    priority: Priority
+
+
 class AnalysisResult(CamelModel):
     """Structured AI output, validated before it is returned to the client.
 

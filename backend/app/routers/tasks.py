@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from app.ai.base import AiAnalyser
 from app.ai.provider import get_analyser
 from app.db import get_connection
-from app.models import AnalysisResult, Status, StatusUpdate, Task
+from app.models import AnalysisResult, PriorityUpdate, Status, StatusUpdate, Task
 from app.services import task_service
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -44,6 +44,20 @@ def update_task_status(
     TaskNotFoundError, which the app translates into a 404.
     """
     return task_service.update_task_status(conn, task_id, payload.status)
+
+
+@router.patch("/{task_id}/priority", response_model=Task)
+def update_task_priority(
+    task_id: int,
+    payload: PriorityUpdate,
+    conn: DbConnection,
+) -> Task:
+    """Update a task's priority.
+
+    Mirrors the status endpoint: the enum rejects unsupported values before this
+    function runs, and an unknown id raises TaskNotFoundError for a 404.
+    """
+    return task_service.update_task_priority(conn, task_id, payload.priority)
 
 
 @router.post("/{task_id}/analyse", response_model=AnalysisResult)

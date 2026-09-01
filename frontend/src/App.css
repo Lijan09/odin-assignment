@@ -22,7 +22,6 @@
   display: flex;
   gap: 8px;
   border-bottom: 1px solid var(--border);
-  overflow-x: auto;
 }
 
 .tab {
@@ -362,6 +361,20 @@
 /* ---- narrow widths ---- */
 @media (max-width: 720px) {
   .page { padding: 24px 14px 48px; }
+
+  /* Narrow screens are the only place the four tabs can outgrow the row.
+     overflow-y must be set explicitly: leaving it at the default would compute
+     to auto (because overflow-x is not visible), and the tabs' -1px bottom
+     margin would then render a vertical scrollbar over a 1px overflow. */
+  .tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
 
   .row {
     grid-template-columns: minmax(0, 1fr);

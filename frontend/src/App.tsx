@@ -7,7 +7,7 @@ import type { Status } from './types'
 import { useTasks } from './useTasks'
 
 const IDLE_ANALYSIS = { loading: false, result: null, error: null }
-const IDLE_STATUS = { saving: false, error: null }
+const IDLE_FIELD = { saving: false, error: null }
 
 function SkeletonRow() {
   return (
@@ -36,8 +36,10 @@ export default function App() {
     loadError,
     analyses,
     statusStates,
+    priorityStates,
     reload,
     changeStatus,
+    changePriority,
     analyse,
   } = useTasks(filter)
 
@@ -80,8 +82,10 @@ export default function App() {
                 key={task.id}
                 task={task}
                 analysis={analyses[task.id] ?? IDLE_ANALYSIS}
-                statusState={statusStates[task.id] ?? IDLE_STATUS}
+                statusState={statusStates[task.id] ?? IDLE_FIELD}
+                priorityState={priorityStates[task.id] ?? IDLE_FIELD}
                 onStatusChange={(status) => void changeStatus(task.id, status)}
+                onPriorityChange={(priority) => void changePriority(task.id, priority)}
                 onAnalyse={() => void analyse(task.id)}
               />
             ))}

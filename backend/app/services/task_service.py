@@ -8,7 +8,7 @@ import sqlite3
 
 from app import repository
 from app.ai.base import AiAnalyser
-from app.models import AnalysisResult, Status, Task
+from app.models import AnalysisResult, Priority, Status, Task
 
 
 class TaskNotFoundError(Exception):
@@ -32,6 +32,13 @@ def get_task(conn: sqlite3.Connection, task_id: int) -> Task:
 
 def update_task_status(conn: sqlite3.Connection, task_id: int, status: Status) -> Task:
     task = repository.update_status(conn, task_id, status)
+    if task is None:
+        raise TaskNotFoundError(task_id)
+    return task
+
+
+def update_task_priority(conn: sqlite3.Connection, task_id: int, priority: Priority) -> Task:
+    task = repository.update_priority(conn, task_id, priority)
     if task is None:
         raise TaskNotFoundError(task_id)
     return task

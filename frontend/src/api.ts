@@ -1,4 +1,4 @@
-import type { AnalysisResult, Status, Task } from './types'
+import type { AnalysisResult, Priority, Status, Task } from './types'
 
 // Vite proxies /api to the backend in development, so the browser only ever
 // talks to its own origin and CORS never comes into play.
@@ -55,6 +55,13 @@ export function updateTaskStatus(id: number, status: Status): Promise<Task> {
   return request<Task>(`/tasks/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
+  })
+}
+
+export function updateTaskPriority(id: number, priority: Priority): Promise<Task> {
+  return request<Task>(`/tasks/${id}/priority`, {
+    method: 'PATCH',
+    body: JSON.stringify({ priority }),
   })
 }
 

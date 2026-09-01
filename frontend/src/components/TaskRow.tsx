@@ -1,14 +1,16 @@
-import { STATUSES, STATUS_LABELS } from '../types'
-import type { Status, Task } from '../types'
-import type { AnalysisState, StatusState } from '../useTasks'
+import { PRIORITIES, STATUSES, STATUS_LABELS } from '../types'
+import type { Priority, Status, Task } from '../types'
+import type { AnalysisState, FieldState } from '../useTasks'
 import { AnalysisPanel } from './AnalysisPanel'
 import { PriorityBadge } from './PriorityBadge'
 
 interface Props {
   task: Task
   analysis: AnalysisState
-  statusState: StatusState
+  statusState: FieldState
+  priorityState: FieldState
   onStatusChange: (status: Status) => void
+  onPriorityChange: (priority: Priority) => void
   onAnalyse: () => void
 }
 
@@ -26,11 +28,15 @@ export function TaskRow({
   task,
   analysis,
   statusState,
+  priorityState,
   onStatusChange,
+  onPriorityChange,
   onAnalyse,
 }: Props) {
   const selectId = `status-${task.id}`
   const statusErrorId = `status-error-${task.id}`
+  const priorityId = `priority-${task.id}`
+  const priorityErrorId = `priority-error-${task.id}`
 
   return (
     <li className="row">
@@ -69,6 +75,31 @@ export function TaskRow({
         {statusState.error && (
           <p className="row__status-error" id={statusErrorId} role="alert">
             {statusState.error} Status reverted to “{STATUS_LABELS[task.status]}”.
+          </p>
+        )}
+
+        <label className="row__label" htmlFor={priorityId}>
+          Priority<span className="sr-only"> for {task.title}</span>
+        </label>
+        <select
+          id={priorityId}
+          className="select"
+          value={task.priority}
+          disabled={priorityState.saving}
+          aria-describedby={priorityState.error ? priorityErrorId : undefined}
+          onChange={(event) => onPriorityChange(event.target.value as Priority)}
+        >
+          {PRIORITIES.map((priority) => (
+            <option key={priority} value={priority}>
+              {priority}
+            </option>
+          ))}
+        </select>
+
+        {priorityState.saving && <p className="row__saving">Saving…</p>}
+        {priorityState.error && (
+          <p className="row__status-error" id={priorityErrorId} role="alert">
+            {priorityState.error} Priority reverted to “{task.priority}”.
           </p>
         )}
 

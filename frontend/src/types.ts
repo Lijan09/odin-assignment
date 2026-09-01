@@ -1,7 +1,8 @@
 export const STATUSES = ['NEW', 'IN_PROGRESS', 'COMPLETED'] as const
 export type Status = (typeof STATUSES)[number]
 
-export type Priority = 'LOW' | 'MEDIUM' | 'HIGH'
+export const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'] as const
+export type Priority = (typeof PRIORITIES)[number]
 
 export type Category =
   | 'DOCUMENT_REQUEST'

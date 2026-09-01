@@ -64,6 +64,11 @@ class GeminiAnalyser:
         self._config = types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=AnalysisResult,
+            # No tools are passed, so automatic function calling has nothing to
+            # do. Disabling it explicitly takes the SDK's direct path instead of
+            # its AFC-capable one, and stops it logging an "AFC is not
+            # recommended" warning that has nothing to do with this call.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
 
     def _call_model(self, prompt: str) -> str | None:
